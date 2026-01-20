@@ -1,0 +1,9 @@
+{
+    "ticker": "AAPL",
+    "exchange": "SMART",
+    "currency": "USD",
+    "ma_fast_period": 20,
+    "ma_slow_period": 50,
+    "position_size": 100,
+    "check_interval_seconds": 60
+}
