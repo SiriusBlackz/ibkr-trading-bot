@@ -11,6 +11,7 @@ import signal
 import sys
 import time
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from typing import Optional
 
 from dotenv import load_dotenv
@@ -139,7 +140,12 @@ class TradingBot:
             return None
 
         current_price = bars[-1].close
-        logger.info(f"Price: ${current_price:.2f} | MA{fast_period}: ${ma_fast:.2f} | MA{slow_period}: ${ma_slow:.2f}")
+
+        # Calculate percentage difference between MAs (positive = fast above slow)
+        ma_spread_pct = ((ma_fast - ma_slow) / ma_slow) * 100
+        spread_sign = "+" if ma_spread_pct >= 0 else ""
+
+        logger.info(f"Price: ${current_price:.2f} | MA{fast_period}: ${ma_fast:.2f} | MA{slow_period}: ${ma_slow:.2f} | Spread: {spread_sign}{ma_spread_pct:.2f}%")
 
         # Check for crossover
         if ma_fast > ma_slow:
@@ -211,13 +217,15 @@ class TradingBot:
             return False
 
     def is_market_hours(self) -> bool:
-        """Check if within US market hours (simplified check)."""
-        now = datetime.now()
+        """Check if within US market hours using New York time."""
+        ny_tz = ZoneInfo("America/New_York")
+        now = datetime.now(ny_tz)
+
         # Monday = 0, Friday = 4
         if now.weekday() > 4:
             return False
 
-        # Market hours: 9:30 AM - 4:00 PM ET (simplified, assumes local time is ET)
+        # Market hours: 9:30 AM - 4:00 PM ET
         market_open = now.replace(hour=9, minute=30, second=0, microsecond=0)
         market_close = now.replace(hour=16, minute=0, second=0, microsecond=0)
 
